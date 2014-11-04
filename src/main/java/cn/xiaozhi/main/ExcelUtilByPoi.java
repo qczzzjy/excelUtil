@@ -4,9 +4,10 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by xiaozhi on 14-11-1.
@@ -14,6 +15,7 @@ import java.util.Map;
 public class ExcelUtilByPoi {
     //Singleton
     private ExcelUtilByPoi(){
+        readPropertes();
     }
 
     private static class HolderClass{
@@ -24,6 +26,11 @@ public class ExcelUtilByPoi {
         return HolderClass.instance;
     }
 
+
+
+    private Workbook wb;
+    private Properties properties;
+
     /**
      *
      * @param outFilePath
@@ -32,7 +39,7 @@ public class ExcelUtilByPoi {
      */
     public void exportExcel2007ByPoi(String outFilePath,String header[],Map<String,List<Object[]>> content){
         try {
-            Workbook wb = createWorkBook(XSSFWorkbook.class.getName());
+            wb = createWorkBook(XSSFWorkbook.class.getName());
             exportExcel(wb, header, content);
             wb.write(new FileOutputStream(outFilePath));
 
@@ -49,7 +56,7 @@ public class ExcelUtilByPoi {
      */
     public void exportExcel2003ByPoi(String outFilePath,String header[],Map<String,List<Object[]>> content){
         try {
-            Workbook wb = createWorkBook(HSSFWorkbook.class.getName());
+            wb = createWorkBook(HSSFWorkbook.class.getName());
             exportExcel(wb, header, content);
             wb.write(new FileOutputStream(outFilePath));
 
@@ -75,36 +82,54 @@ public class ExcelUtilByPoi {
     }
 
     private void createSheet(Sheet sheet, String[] header, List<Object[]> sheetContent) {
-        Integer row=0;
+        int row=0;
         //创建header行
-        createHeader(sheet,row,header);
+        row = createHeader(sheet,row,header);
         for(Object[] objects:sheetContent){
             Row rowE = sheet.createRow(row);
             for(int i=0;i<objects.length;i++){
                 rowE.createCell(i).setCellValue(objects[i].toString());
             }
+            row++;
         }
     }
 
-    private void createHeader(Sheet sheet, Integer row, String[] header) {
+    private int createHeader(Sheet sheet, int row, String[] header) {
         Row rowE = sheet.createRow(row);
+        CellStyle cs = null;
+        if(properties!=null){
+            cs = createCellStyle("header");
+        }
         for(int i=0;i<header.length;i++){
+            Cell cell = rowE.createCell(i);
+            if(cs!=null){
+                cell.setCellStyle(cs);
+            }
             rowE.createCell(i).setCellValue(header[i]);
         }
-        row++;
+        return ++row;
     }
 
     /**
      *
-     * @param wb
      * @param cellType hader,content
      * @return
      */
-    private CellStyle createCellStyle(Workbook wb,String cellType){
+    private CellStyle createCellStyle(String cellType){
         CellStyle cellStyle = wb.createCellStyle();
 //        cellStyle.setFillBackgroundColor();
 //        cellStyle.setFont();
         return cellStyle;
+    }
+
+    private void readPropertes(){
+        InputStream is = ClassLoader.getSystemResourceAsStream("excelUtil.properties");
+        properties=new Properties();
+        try {
+            properties.load(is);
+        } catch (IOException e) {
+            ;
+        }
     }
 
 }

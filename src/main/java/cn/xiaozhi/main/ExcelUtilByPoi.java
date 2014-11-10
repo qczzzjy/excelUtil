@@ -117,7 +117,8 @@ public class ExcelUtilByPoi {
      */
     private CellStyle createCellStyle(String cellType){
         CellStyle cellStyle = wb.createCellStyle();
-//        cellStyle.setFillBackgroundColor();
+        cellStyle.setFillBackgroundColor(
+        Short.parseShort(properties.getProperty(cellType+"background.color")));
 //        cellStyle.setFont();
         return cellStyle;
     }
